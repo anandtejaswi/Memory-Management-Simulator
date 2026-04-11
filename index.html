@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Memory Management Simulator — OS Learning Tool</title>
-  <meta name="description" content="Interactive Operating Systems Memory Management Simulator covering allocation algorithms, paging, segmentation, virtual memory, analytics, and quiz mode.">
+  <meta name="description" content="Interactive Operating Systems Memory Management Simulator covering allocation algorithms, paging, segmentation, virtual memory, and analytics.">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/layout.css">
@@ -21,7 +21,6 @@
     <button class="tab" data-tab="segmentation" id="tab-btn-segmentation">Segmentation</button>
     <button class="tab" data-tab="virtual" id="tab-btn-virtual">Virtual Memory</button>
     <button class="tab" data-tab="analytics" id="tab-btn-analytics">Analytics</button>
-    <button class="tab" data-tab="quiz" id="tab-btn-quiz">Quiz</button>
   </nav>
 
   <main id="app">
@@ -261,43 +260,6 @@
         <h3>Memory Access Heatmap</h3>
         <div id="heatmap-canvas"></div>
       </div>
-    </section>
-
-    <!-- Tab 6: Quiz -->
-    <section id="tab-quiz" class="tab-content">
-      <h2>Quiz Mode</h2>
-      <div id="quiz-setup">
-        <label for="quiz-topic">Topic</label>
-        <select id="quiz-topic">
-          <option value="page_replacement">Page Replacement</option>
-          <option value="allocation">Memory Allocation</option>
-          <option value="segmentation">Segmentation</option>
-          <option value="virtual">Virtual Memory</option>
-        </select>
-        <label for="quiz-difficulty">Difficulty</label>
-        <select id="quiz-difficulty">
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
-        <div class="btn-row">
-          <button class="primary" id="btn-quiz-start">Start Quiz</button>
-        </div>
-      </div>
-      <div id="quiz-question" style="display:none">
-        <div id="quiz-scenario"></div>
-        <div id="quiz-prompt"></div>
-        <input type="text" id="quiz-answer" placeholder="Your answer">
-        <div class="btn-row">
-          <button class="primary" id="btn-quiz-submit">Submit</button>
-          <button id="btn-quiz-hint">Hint</button>
-        </div>
-        <div id="quiz-feedback"></div>
-        <div class="btn-row">
-          <button id="btn-quiz-next" style="display:none">Next Question</button>
-        </div>
-      </div>
-      <div id="quiz-score"></div>
     </section>
 
   </main>

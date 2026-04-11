@@ -12,7 +12,6 @@ An interactive Operating Systems educational tool that simulates memory manageme
 | **Segmentation** | Segment table, protection bits, address translation |
 | **Virtual Memory** | Working Set Model, 2-Level Page Table, Inverted PT, Thrashing |
 | **Analytics** | Chart.js charts, memory heatmap, CSV/PDF export |
-| **Quiz Mode** | Procedural OS question generation with hints and scoring |
 
 ## Running the Simulator
 

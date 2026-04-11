@@ -34,6 +34,4 @@ export const state = {
   tlbRatioTimeline: [],
   accessFrequency: {},           // { pageNumber: count }
 
-  // Quiz
-  quizSession: { correct: 0, total: 0, questions: [] }
 };

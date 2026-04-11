@@ -259,37 +259,6 @@ h3 {
 .ref-bit.on  { background: var(--purple-main); color: var(--white); }
 .ref-bit.off { background: var(--purple-faint); color: var(--text-muted); }
 
-/* ===== Quiz ===== */
-#quiz-setup { max-width: 360px; }
-#quiz-question { max-width: 640px; margin-top: 20px; }
-
-#quiz-scenario {
-  background: var(--purple-faint);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 14px;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-  white-space: pre-wrap;
-}
-
-#quiz-prompt {
-  font-size: 15px;
-  font-weight: 500;
-  margin-bottom: 12px;
-  color: var(--text-primary);
-}
-
-#quiz-feedback { margin-top: 12px; }
-
-#quiz-score {
-  margin-top: 20px;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--purple-main);
-}
 
 /* ===== PR trace cells ===== */
 .frame-cell {

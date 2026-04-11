@@ -28,7 +28,7 @@ import * as PagingView  from './views/paging_view.js';
 import * as SegView     from './views/segmentation_view.js';
 import * as VMView      from './views/virtual_memory_view.js';
 import * as Analytics   from './views/analytics_view.js';
-import { initQuiz }     from './views/quiz_view.js';
+
 import { state }        from './state.js';
 
 /* ===== Helpers ===== */
@@ -499,11 +499,6 @@ function initAnalyticsModule() {
   });
 }
 
-/* ===== Quiz Module ===== */
-function initQuizModule() {
-  initQuiz(state.quizSession);
-}
-
 /* ===== Main init ===== */
 export function initController() {
   initTabNav();
@@ -512,5 +507,5 @@ export function initController() {
   initSegmentationModule();
   initVirtualMemoryModule();
   initAnalyticsModule();
-  initQuizModule();
+
 }
