@@ -1,0 +1,57 @@
+/* ===== Two-column layout ===== */
+.two-col {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.panel-left {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  position: sticky;
+  top: 16px;
+}
+
+.panel-right {
+  min-width: 0;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .two-col { grid-template-columns: 1fr; }
+  .panel-left { position: static; }
+  main { padding: 16px; }
+  #tab-nav { padding: 0 16px; overflow-x: auto; }
+  header { padding: 12px 16px; }
+}
+
+/* ===== Analytics grid ===== */
+#analytics-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  #analytics-charts { grid-template-columns: 1fr; }
+}
+
+/* ===== Heatmap container ===== */
+#analytics-heatmap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+/* ===== VM sub-panel spacing ===== */
+#vm-ws-inputs,
+#vm-ml-inputs,
+#vm-ipt-inputs,
+#vm-thrash-inputs {
+  margin-top: 8px;
+}

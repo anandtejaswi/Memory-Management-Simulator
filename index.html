@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Management Simulator — OS Learning Tool</title>
+  <meta name="description" content="Interactive Operating Systems Memory Management Simulator covering allocation algorithms, paging, segmentation, virtual memory, analytics, and quiz mode.">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+</head>
+<body>
+  <header>
+    <h1>Memory Management Simulator</h1>
+    <p>Operating Systems — Interactive Learning Tool</p>
+  </header>
+
+  <nav id="tab-nav" role="navigation" aria-label="Module tabs">
+    <button class="tab active" data-tab="allocation" id="tab-btn-allocation">Allocation</button>
+    <button class="tab" data-tab="paging" id="tab-btn-paging">Paging</button>
+    <button class="tab" data-tab="segmentation" id="tab-btn-segmentation">Segmentation</button>
+    <button class="tab" data-tab="virtual" id="tab-btn-virtual">Virtual Memory</button>
+    <button class="tab" data-tab="analytics" id="tab-btn-analytics">Analytics</button>
+    <button class="tab" data-tab="quiz" id="tab-btn-quiz">Quiz</button>
+  </nav>
+
+  <main id="app">
+
+    <!-- Tab 1: Contiguous Allocation -->
+    <section id="tab-allocation" class="tab-content active">
+      <div class="two-col">
+        <div class="panel-left">
+          <h2>Contiguous Memory Allocation</h2>
+          <label for="alloc-algo">Algorithm</label>
+          <select id="alloc-algo">
+            <option value="first_fit">First Fit</option>
+            <option value="best_fit">Best Fit</option>
+            <option value="worst_fit">Worst Fit</option>
+            <option value="next_fit">Next Fit</option>
+          </select>
+          <label for="alloc-mem-size">Total Memory (KB)</label>
+          <input type="number" id="alloc-mem-size" value="1024" min="64" max="8192">
+          <label for="alloc-proc-size">Process Size (KB)</label>
+          <input type="number" id="alloc-proc-size" value="128" min="1">
+          <div class="btn-row">
+            <button class="primary" id="btn-alloc-add">Allocate</button>
+            <button id="btn-alloc-reset">Reset</button>
+          </div>
+          <label for="alloc-free-pid">Free PID</label>
+          <input type="number" id="alloc-free-pid" min="1" placeholder="Enter PID">
+          <div class="btn-row">
+            <button id="btn-alloc-free">Free Process</button>
+            <button id="btn-alloc-compact">Compact</button>
+          </div>
+          <div class="btn-row" style="margin-top:16px">
+            <button id="btn-compare-alloc">Compare All Algorithms</button>
+          </div>
+        </div>
+        <div class="panel-right">
+          <div id="alloc-memory-map"></div>
+          <div id="alloc-stats-table"></div>
+          <div id="alloc-comparison-table"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Paging + TLB + Page Replacement -->
+    <section id="tab-paging" class="tab-content">
+      <div class="two-col">
+        <div class="panel-left">
+          <h2>Paging &amp; Address Translation</h2>
+          <label for="page-size">Page Size (bytes)</label>
+          <select id="page-size">
+            <option value="512">512 B</option>
+            <option value="1024">1 KB</option>
+            <option value="4096" selected>4 KB</option>
+            <option value="8192">8 KB</option>
+          </select>
+          <label for="page-count">Number of Pages</label>
+          <input type="number" id="page-count" value="16" min="2" max="512">
+          <label for="page-logical-addr">Logical Address (decimal)</label>
+          <input type="number" id="page-logical-addr" value="0" min="0">
+          <div class="btn-row">
+            <button class="primary" id="btn-translate">Translate</button>
+            <button id="btn-flush-tlb">Flush TLB</button>
+          </div>
+          <h3 style="margin-top:20px">Page Replacement</h3>
+          <label for="pr-algo">Algorithm</label>
+          <select id="pr-algo">
+            <option value="fifo">FIFO</option>
+            <option value="lru">LRU</option>
+            <option value="lfu">LFU</option>
+            <option value="optimal">Optimal</option>
+            <option value="clock">Clock</option>
+          </select>
+          <label for="pr-frames">Number of Frames</label>
+          <input type="number" id="pr-frames" value="3" min="1" max="16">
+          <label for="pr-ref-string">Reference String (space-separated)</label>
+          <input type="text" id="pr-ref-string" value="7 0 1 2 0 3 0 4 2 3 0 3 2">
+          <div class="btn-row">
+            <button class="primary" id="btn-pr-run">Run</button>
+            <button id="btn-pr-compare">Compare All</button>
+            <button id="btn-pr-beladys">Check Belady's</button>
+          </div>
+        </div>
+        <div class="panel-right">
+          <div id="paging-translation-result"></div>
+          <div id="paging-page-table"></div>
+          <div id="paging-tlb"></div>
+          <div id="pr-trace-table"></div>
+          <div id="pr-comparison-table"></div>
+          <div id="pr-beladys-result"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Segmentation -->
+    <section id="tab-segmentation" class="tab-content">
+      <div class="two-col">
+        <div class="panel-left">
+          <h2>Segmentation</h2>
+          <label for="seg-pid">Process ID</label>
+          <input type="number" id="seg-pid" value="1" min="1">
+          <label for="seg-name">Segment Name</label>
+          <input type="text" id="seg-name" value="code" maxlength="15">
+          <label for="seg-base">Base Address</label>
+          <input type="number" id="seg-base" value="0" min="0">
+          <label for="seg-limit">Limit (size)</label>
+          <input type="number" id="seg-limit" value="512" min="1">
+          <label>Permissions</label>
+          <div class="checkbox-row">
+            <label><input type="checkbox" id="seg-read" checked> Read</label>
+            <label><input type="checkbox" id="seg-write"> Write</label>
+            <label><input type="checkbox" id="seg-exec" checked> Execute</label>
+          </div>
+          <div class="btn-row">
+            <button class="primary" id="btn-seg-add">Add Segment</button>
+            <button id="btn-seg-reset">Reset</button>
+          </div>
+          <h3 style="margin-top:16px">Translate Address</h3>
+          <label for="seg-trans-seg">Segment Number</label>
+          <input type="number" id="seg-trans-seg" value="0" min="0">
+          <label for="seg-trans-offset">Offset</label>
+          <input type="number" id="seg-trans-offset" value="100" min="0">
+          <label for="seg-trans-op">Operation</label>
+          <select id="seg-trans-op">
+            <option value="0">Read</option>
+            <option value="1">Write</option>
+            <option value="2">Execute</option>
+          </select>
+          <div class="btn-row">
+            <button class="primary" id="btn-seg-translate">Translate</button>
+          </div>
+        </div>
+        <div class="panel-right">
+          <div id="seg-table"></div>
+          <div id="seg-translation-result"></div>
+          <div id="seg-memory-map"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Virtual Memory -->
+    <section id="tab-virtual" class="tab-content">
+      <div class="two-col">
+        <div class="panel-left">
+          <h2>Virtual Memory</h2>
+          <label for="vm-submodule">Sub-module</label>
+          <select id="vm-submodule">
+            <option value="working_set">Working Set Model</option>
+            <option value="multilevel">2-Level Page Table</option>
+            <option value="inverted">Inverted Page Table</option>
+            <option value="thrashing">Thrashing Simulation</option>
+          </select>
+
+          <!-- Working Set inputs -->
+          <div id="vm-ws-inputs">
+            <label for="ws-window">Window Size (delta)</label>
+            <input type="number" id="ws-window" value="3" min="1" max="20">
+            <label for="ws-ref-string">Reference String</label>
+            <input type="text" id="ws-ref-string" value="1 2 3 4 2 1 5 6 2 1 2 3 7 6 3 2 1">
+            <div class="btn-row">
+              <button class="primary" id="btn-ws-run">Run</button>
+            </div>
+          </div>
+
+          <!-- Multi-level PT inputs -->
+          <div id="vm-ml-inputs" style="display:none">
+            <label for="ml-vaddr">Virtual Address (decimal)</label>
+            <input type="number" id="ml-vaddr" value="4096" min="0">
+            <label for="ml-frame">Map to Frame</label>
+            <input type="number" id="ml-frame" value="7" min="0">
+            <div class="btn-row">
+              <button class="primary" id="btn-ml-map">Map Page</button>
+              <button id="btn-ml-translate">Translate</button>
+            </div>
+          </div>
+
+          <!-- Inverted PT inputs -->
+          <div id="vm-ipt-inputs" style="display:none">
+            <label for="ipt-pid">PID</label>
+            <input type="number" id="ipt-pid" value="1" min="1">
+            <label for="ipt-page">Page Number</label>
+            <input type="number" id="ipt-page" value="0" min="0">
+            <label for="ipt-offset">Offset</label>
+            <input type="number" id="ipt-offset" value="0" min="0">
+            <label for="ipt-frame">Frame (for load)</label>
+            <input type="number" id="ipt-frame" value="0" min="0">
+            <div class="btn-row">
+              <button id="btn-ipt-load">Load Page</button>
+              <button class="primary" id="btn-ipt-translate">Translate</button>
+            </div>
+          </div>
+
+          <!-- Thrashing inputs -->
+          <div id="vm-thrash-inputs" style="display:none">
+            <label for="thrash-frames">Total Physical Frames</label>
+            <input type="number" id="thrash-frames" value="32" min="4" max="256">
+            <label for="thrash-procs">Process Count</label>
+            <input type="number" id="thrash-procs" value="4" min="1" max="16">
+            <label for="thrash-ws-size">Working Set Size per Process (KB)</label>
+            <input type="number" id="thrash-ws-size" value="10" min="1">
+            <div class="btn-row">
+              <button class="primary" id="btn-thrash-run">Simulate</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel-right">
+          <div id="vm-output"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 5: Analytics -->
+    <section id="tab-analytics" class="tab-content">
+      <h2>Analytics Dashboard</h2>
+      <div id="analytics-controls">
+        <button id="btn-export-csv">Export CSV</button>
+        <button id="btn-export-pdf">Export PDF</button>
+        <button id="btn-clear-history">Clear History</button>
+      </div>
+      <div id="analytics-charts">
+        <div class="chart-container">
+          <h3>Memory Utilisation Over Time</h3>
+          <canvas id="chart-utilisation" height="120"></canvas>
+        </div>
+        <div class="chart-container">
+          <h3>Page Fault Rate by Algorithm</h3>
+          <canvas id="chart-faults" height="120"></canvas>
+        </div>
+        <div class="chart-container">
+          <h3>Fragmentation Index History</h3>
+          <canvas id="chart-fragmentation" height="120"></canvas>
+        </div>
+        <div class="chart-container">
+          <h3>TLB Hit Ratio Over Time</h3>
+          <canvas id="chart-tlb" height="120"></canvas>
+        </div>
+      </div>
+      <div id="analytics-heatmap">
+        <h3>Memory Access Heatmap</h3>
+        <div id="heatmap-canvas"></div>
+      </div>
+    </section>
+
+    <!-- Tab 6: Quiz -->
+    <section id="tab-quiz" class="tab-content">
+      <h2>Quiz Mode</h2>
+      <div id="quiz-setup">
+        <label for="quiz-topic">Topic</label>
+        <select id="quiz-topic">
+          <option value="page_replacement">Page Replacement</option>
+          <option value="allocation">Memory Allocation</option>
+          <option value="segmentation">Segmentation</option>
+          <option value="virtual">Virtual Memory</option>
+        </select>
+        <label for="quiz-difficulty">Difficulty</label>
+        <select id="quiz-difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+        <div class="btn-row">
+          <button class="primary" id="btn-quiz-start">Start Quiz</button>
+        </div>
+      </div>
+      <div id="quiz-question" style="display:none">
+        <div id="quiz-scenario"></div>
+        <div id="quiz-prompt"></div>
+        <input type="text" id="quiz-answer" placeholder="Your answer">
+        <div class="btn-row">
+          <button class="primary" id="btn-quiz-submit">Submit</button>
+          <button id="btn-quiz-hint">Hint</button>
+        </div>
+        <div id="quiz-feedback"></div>
+        <div class="btn-row">
+          <button id="btn-quiz-next" style="display:none">Next Question</button>
+        </div>
+      </div>
+      <div id="quiz-score"></div>
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
