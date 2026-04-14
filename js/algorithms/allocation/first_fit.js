@@ -41,14 +41,31 @@ export function makeMemoryMap(totalSize) {
 }
 
 export function firstFitAllocate(map, processId, size) {
-  for (let i = 0; i < map.blocks.length; i++) {
-    if (map.blocks[i].isFree && map.blocks[i].size >= size) {
-      splitBlock(map.blocks, i, size);
-      map.blocks[i].isFree = false;
-      map.blocks[i].processId = processId;
-      map.lastAllocatedIndex = i;
-      return map.blocks[i].base;
-    }
+  let m = map.blocks.length;
+  let n = 1;
+  let blockSize = [];
+  for(let k = 0; k < m; k++) {
+    blockSize[k] = map.blocks[k].isFree ? map.blocks[k].size : 0;
+  }
+  let processSize = [size];
+  let allocation = [-1];
+
+  let i = 0;
+  for(let j = 0; j < m; j++) {
+      if(blockSize[j] >= processSize[i]) {
+          allocation[i] = j;
+          blockSize[j] -= processSize[i];
+          break;
+      }
+  }
+
+  if(allocation[0] !== -1) {
+      let j = allocation[0];
+      splitBlock(map.blocks, j, size);
+      map.blocks[j].isFree = false;
+      map.blocks[j].processId = processId;
+      map.lastAllocatedIndex = j;
+      return map.blocks[j].base;
   }
   return -1;
 }

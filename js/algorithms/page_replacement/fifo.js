@@ -7,42 +7,55 @@
  */
 
 export function fifoSimulate(input) {
-  const { frames: frameCount, refString } = input;
-  const frames = new Array(frameCount).fill(-1);
-  const steps = [];
-  let queuePtr = 0;
-  let loaded = 0;
-  let totalFaults = 0, totalHits = 0;
+  let pages = input.refString;
+  let n = pages.length;
+  let f = input.frames;
+  let frames = [];
+  let i, j, k = 0;
+  let pageFaults = 0, hits = 0, flag;
 
-  for (let i = 0; i < refString.length; i++) {
-    const page = refString[i];
-    const inFrame = frames.includes(page);
-    const step = {
-      step: i,
-      page,
-      framesSnapshot: frames.slice(),
-      frameCount,
-      pageFault: false,
-      victimPage: -1,
-      refBitSnapshot: new Array(frameCount).fill(0)
-    };
-
-    if (inFrame) {
-      totalHits++;
-    } else {
-      step.pageFault = true;
-      totalFaults++;
-      step.victimPage = frames[queuePtr];
-      frames[queuePtr] = page;
-      queuePtr = (queuePtr + 1) % frameCount;
-      if (loaded < frameCount) loaded++;
-    }
-
-    step.framesSnapshot = frames.slice();
-    steps.push(step);
+  // Initialize frames as empty
+  for(i = 0; i < f; i++) {
+      frames[i] = -1;
   }
 
-  return { steps, totalFaults, totalHits, algorithmName: 'FIFO' };
+  let steps = [];
+
+  // FIFO Logic
+  for(i = 0; i < n; i++) {
+      flag = 0;
+      let victim = -1;
+
+      // Check HIT
+      for(j = 0; j < f; j++) {
+          if(frames[j] === pages[i]) {
+              flag = 1;
+              break;
+          }
+      }
+
+      // If FAULT
+      if(flag === 0) {
+          victim = frames[k];
+          frames[k] = pages[i];   // Replace oldest
+          k = (k + 1) % f;        // Move FIFO pointer
+          pageFaults++;
+      } else {
+          hits++;
+      }
+
+      steps.push({
+        step: i,
+        page: pages[i],
+        framesSnapshot: frames.slice(),
+        frameCount: f,
+        pageFault: (flag === 0),
+        victimPage: victim,
+        refBitSnapshot: new Array(f).fill(0)
+      });
+  }
+
+  return { steps, totalFaults: pageFaults, totalHits: hits, algorithmName: 'FIFO' };
 }
 
 export function fifoCheckBeladys(input, minFrames, maxFrames) {

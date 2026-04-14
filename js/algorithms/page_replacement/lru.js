@@ -7,50 +7,67 @@
  */
 
 export function lruSimulate(input) {
-  const { frames: frameCount, refString } = input;
-  const frames = new Array(frameCount).fill(-1);
-  const lastUsed = new Array(frameCount).fill(-1);
-  const steps = [];
-  let loaded = 0;
-  let totalFaults = 0, totalHits = 0;
+  let pages = input.refString;
+  let n = pages.length;
+  let f = input.frames;
+  let frames = [];
+  let i, j;
+  let pageFaults = 0, hits = 0;
 
-  for (let i = 0; i < refString.length; i++) {
-    const page = refString[i];
-    const idx = frames.indexOf(page);
-    const step = {
-      step: i,
-      page,
-      framesSnapshot: [],
-      frameCount,
-      pageFault: false,
-      victimPage: -1,
-      refBitSnapshot: new Array(frameCount).fill(0)
-    };
+  let time = [], counter = 0, pos, min;
 
-    if (idx !== -1) {
-      totalHits++;
-      lastUsed[idx] = i;
-    } else {
-      step.pageFault = true;
-      totalFaults++;
-      let victim;
-      if (loaded < frameCount) {
-        victim = loaded++;
-        step.victimPage = -1;
-      } else {
-        victim = 0;
-        for (let j = 1; j < frameCount; j++) {
-          if (lastUsed[j] < lastUsed[victim]) victim = j;
-        }
-        step.victimPage = frames[victim];
-      }
-      frames[victim] = page;
-      lastUsed[victim] = i;
-    }
-
-    step.framesSnapshot = frames.slice();
-    steps.push(step);
+  for(i = 0; i < f; i++) {
+      frames[i] = -1;
+      time[i] = 0;
   }
 
-  return { steps, totalFaults, totalHits, algorithmName: 'LRU' };
+  let steps = [];
+
+  for(i = 0; i < n; i++) {
+      let flag = 0;
+      let victim = -1;
+
+      // Check HIT
+      for(j = 0; j < f; j++) {
+          if(frames[j] === pages[i]) {
+              flag = 1;
+              hits++;
+              counter++;
+              time[j] = counter;
+              break;
+          }
+      }
+
+      // If FAULT
+      if(flag === 0) {
+          pageFaults++;
+          counter++;
+
+          min = time[0];
+          pos = 0;
+
+          for(j = 1; j < f; j++) {
+              if(time[j] < min) {
+                  min = time[j];
+                  pos = j;
+              }
+          }
+
+          victim = frames[pos];
+          frames[pos] = pages[i];
+          time[pos] = counter;
+      }
+
+      steps.push({
+        step: i,
+        page: pages[i],
+        framesSnapshot: frames.slice(),
+        frameCount: f,
+        pageFault: (flag === 0),
+        victimPage: victim,
+        refBitSnapshot: new Array(f).fill(0)
+      });
+  }
+
+  return { steps, totalFaults: pageFaults, totalHits: hits, algorithmName: 'LRU' };
 }

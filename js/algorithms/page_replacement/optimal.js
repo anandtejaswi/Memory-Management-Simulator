@@ -6,57 +6,75 @@
  * JS port of c/algorithms/page_replacement/optimal.c
  */
 
-function nextUse(refString, from, page) {
-  for (let i = from; i < refString.length; i++) {
-    if (refString[i] === page) return i;
-  }
-  return refString.length + 1;
-}
-
 export function optimalSimulate(input) {
-  const { frames: frameCount, refString } = input;
-  const frames = new Array(frameCount).fill(-1);
-  const steps = [];
-  let loaded = 0;
-  let totalFaults = 0, totalHits = 0;
+  let pages = input.refString;
+  let n = pages.length;
+  let f = input.frames;
+  let frames = [];
+  let i, j, k, pos, farthest;
+  let faults = 0, hits = 0;
 
-  for (let i = 0; i < refString.length; i++) {
-    const page = refString[i];
-    const idx = frames.indexOf(page);
-    const step = {
-      step: i,
-      page,
-      framesSnapshot: [],
-      frameCount,
-      pageFault: false,
-      victimPage: -1,
-      refBitSnapshot: new Array(frameCount).fill(0)
-    };
+  for(i = 0; i < f; i++)
+      frames[i] = -1;
 
-    if (idx !== -1) {
-      totalHits++;
-    } else {
-      step.pageFault = true;
-      totalFaults++;
-      let victim;
-      if (loaded < frameCount) {
-        victim = loaded++;
-        step.victimPage = -1;
-      } else {
-        victim = 0;
-        let maxNext = nextUse(refString, i + 1, frames[0]);
-        for (let j = 1; j < frameCount; j++) {
-          const nu = nextUse(refString, i + 1, frames[j]);
-          if (nu > maxNext) { maxNext = nu; victim = j; }
-        }
-        step.victimPage = frames[victim];
+  let steps = [];
+
+  for(i = 0; i < n; i++) {
+      let flag = 0;
+      let victim = -1;
+
+      // HIT check
+      for(j = 0; j < f; j++) {
+          if(frames[j] === pages[i]) {
+              flag = 1;
+              hits++;
+              break;
+          }
       }
-      frames[victim] = page;
-    }
 
-    step.framesSnapshot = frames.slice();
-    steps.push(step);
+      if(flag === 0) {
+          faults++;
+
+          pos = -1;
+          farthest = i;
+
+          for(j = 0; j < f; j++) {
+              let found = 0;
+
+              for(k = i+1; k < n; k++) {
+                  if(frames[j] === pages[k]) {
+                      if(k > farthest) {
+                          farthest = k;
+                          pos = j;
+                      }
+                      found = 1;
+                      break;
+                  }
+              }
+
+              if(found === 0) {
+                  pos = j;
+                  break;
+              }
+          }
+
+          if(pos === -1)
+              pos = 0;
+
+          victim = frames[pos];
+          frames[pos] = pages[i];
+      }
+
+      steps.push({
+        step: i,
+        page: pages[i],
+        framesSnapshot: frames.slice(),
+        frameCount: f,
+        pageFault: (flag === 0),
+        victimPage: victim,
+        refBitSnapshot: new Array(f).fill(0)
+      });
   }
 
-  return { steps, totalFaults, totalHits, algorithmName: 'Optimal' };
+  return { steps, totalFaults: faults, totalHits: hits, algorithmName: 'Optimal' };
 }

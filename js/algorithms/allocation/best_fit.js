@@ -36,20 +36,38 @@ function splitBlock(blocks, index, size) {
 }
 
 export function bestFitAllocate(map, processId, size) {
-  let best = -1;
-  for (let i = 0; i < map.blocks.length; i++) {
-    if (map.blocks[i].isFree && map.blocks[i].size >= size) {
-      if (best === -1 || map.blocks[i].size < map.blocks[best].size) {
-        best = i;
-      }
-    }
+  let m = map.blocks.length;
+  let n = 1;
+  let blockSize = [];
+  for(let k = 0; k < m; k++) {
+    blockSize[k] = map.blocks[k].isFree ? map.blocks[k].size : 0;
   }
-  if (best === -1) return -1;
-  splitBlock(map.blocks, best, size);
-  map.blocks[best].isFree = false;
-  map.blocks[best].processId = processId;
-  map.lastAllocatedIndex = best;
-  return map.blocks[best].base;
+  let processSize = [size];
+  let allocation = [-1];
+
+  let i = 0;
+  let bestIdx = -1;
+  for(let j = 0; j < m; j++) {
+      if(blockSize[j] >= processSize[i]) {
+          if(bestIdx === -1 || blockSize[j] < blockSize[bestIdx])
+              bestIdx = j;
+      }
+  }
+
+  if(bestIdx !== -1) {
+      allocation[i] = bestIdx;
+      blockSize[bestIdx] -= processSize[i];
+  }
+
+  if(allocation[0] !== -1) {
+      let j = allocation[0];
+      splitBlock(map.blocks, j, size);
+      map.blocks[j].isFree = false;
+      map.blocks[j].processId = processId;
+      map.lastAllocatedIndex = j;
+      return map.blocks[j].base;
+  }
+  return -1;
 }
 
 export function bestFitFree(map, processId) {

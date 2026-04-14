@@ -9,63 +9,67 @@
 #include "clock.h"
 #include <string.h>
 
-static int frame_index(int *frames, int n, int page) {
-    int i;
-    for (i = 0; i < n; i++) if (frames[i] == page) return i;
-    return -1;
-}
-
 PRResult clock_simulate(PRInput input) {
     PRResult result;
     memset(&result, 0, sizeof(PRResult));
     strncpy(result.algorithm_name, "Clock", 31);
 
     int frames[MAX_FRAMES_PR];
-    int ref_bits[MAX_FRAMES_PR];
-    int n = input.frame_count;
+    int ref[MAX_FRAMES_PR];
+    int *pages = input.ref_string;
+    int n = input.ref_length;
+    int f = input.frame_count;
     int i, j;
-    for (i = 0; i < n; i++) { frames[i] = -1; ref_bits[i] = 0; }
-    int ptr = 0;
-    int loaded = 0;
+    int pointer = 0;
+    int faults = 0, hits = 0;
 
-    for (i = 0; i < input.ref_length; i++) {
-        int page = input.ref_string[i];
-        PRStep *step = &result.steps[result.step_count++];
-        step->step = i;
-        step->page = page;
-        step->frame_count = n;
+    for (i = 0; i < f; i++) {
+        frames[i] = -1;
+        ref[i] = 0;
+    }
 
-        int idx = frame_index(frames, n, page);
-        if (idx != -1) {
-            step->page_fault = 0;
-            result.total_hits++;
-            ref_bits[idx] = 1;
-        } else {
-            step->page_fault = 1;
-            result.total_faults++;
+    for (i = 0; i < n; i++) {
+        int flag = 0;
+        int victim = -1;
 
-            if (loaded < n) {
-                frames[ptr] = page;
-                ref_bits[ptr] = 1;
-                step->victim_page = -1;
-                loaded++;
-                ptr = (ptr + 1) % n;
-            } else {
-                while (ref_bits[ptr] == 1) {
-                    ref_bits[ptr] = 0;
-                    ptr = (ptr + 1) % n;
-                }
-                step->victim_page = frames[ptr];
-                frames[ptr] = page;
-                ref_bits[ptr] = 1;
-                ptr = (ptr + 1) % n;
+        for (j = 0; j < f; j++) {
+            if (frames[j] == pages[i]) {
+                flag = 1;
+                ref[j] = 1;
+                hits++;
+                break;
             }
         }
 
-        for (j = 0; j < n; j++) {
+        if (flag == 0) {
+            faults++;
+            while (1) {
+                if (ref[pointer] == 0) {
+                    victim = frames[pointer];
+                    frames[pointer] = pages[i];
+                    ref[pointer] = 1;
+                    pointer = (pointer + 1) % f;
+                    break;
+                } else {
+                    ref[pointer] = 0;
+                    pointer = (pointer + 1) % f;
+                }
+            }
+        }
+
+        PRStep *step = &result.steps[result.step_count++];
+        step->step = i;
+        step->page = pages[i];
+        step->frame_count = f;
+        step->page_fault = (flag == 0);
+        step->victim_page = victim;
+        for (j = 0; j < f; j++) {
             step->frames_snapshot[j] = frames[j];
-            step->ref_bit_snapshot[j] = ref_bits[j];
+            step->ref_bit_snapshot[j] = ref[j];
         }
     }
+
+    result.total_faults = faults;
+    result.total_hits = hits;
     return result;
 }

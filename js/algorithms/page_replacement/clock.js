@@ -7,57 +7,67 @@
  */
 
 export function clockSimulate(input) {
-  const { frames: frameCount, refString } = input;
-  const frames = new Array(frameCount).fill(-1);
-  const refBits = new Array(frameCount).fill(0);
-  const steps = [];
-  let ptr = 0;
-  let loaded = 0;
-  let totalFaults = 0, totalHits = 0;
+  let pages = input.refString;
+  let n = pages.length;
+  let f = input.frames;
+  let frames = [];
+  let ref = [];
+  let i, j;
+  let pointer = 0;
+  let faults = 0, hits = 0;
 
-  for (let i = 0; i < refString.length; i++) {
-    const page = refString[i];
-    const idx = frames.indexOf(page);
-    const step = {
-      step: i,
-      page,
-      framesSnapshot: [],
-      frameCount,
-      pageFault: false,
-      victimPage: -1,
-      refBitSnapshot: []
-    };
-
-    if (idx !== -1) {
-      totalHits++;
-      refBits[idx] = 1;
-    } else {
-      step.pageFault = true;
-      totalFaults++;
-
-      if (loaded < frameCount) {
-        frames[ptr] = page;
-        refBits[ptr] = 1;
-        step.victimPage = -1;
-        loaded++;
-        ptr = (ptr + 1) % frameCount;
-      } else {
-        /* Scan clockwise until we find ref=0 */
-        while (refBits[ptr] === 1) {
-          refBits[ptr] = 0;
-          ptr = (ptr + 1) % frameCount;
-        }
-        step.victimPage = frames[ptr];
-        frames[ptr] = page;
-        refBits[ptr] = 1;
-        ptr = (ptr + 1) % frameCount;
-      }
-    }
-
-    step.framesSnapshot = frames.slice();
-    step.refBitSnapshot = refBits.slice();
-    steps.push(step);
+  for(i = 0; i < f; i++) {
+      frames[i] = -1;
+      ref[i] = 0;
   }
 
-  return { steps, totalFaults, totalHits, algorithmName: 'Clock' };
+  let steps = [];
+
+  for(i = 0; i < n; i++) {
+      let flag = 0;
+      let victim = -1;
+
+      // HIT check
+      for(j = 0; j < f; j++) {
+          if(frames[j] === pages[i]) {
+              flag = 1;
+              ref[j] = 1;   // give second chance
+              hits++;
+              break;
+          }
+      }
+
+      // If FAULT
+      if(flag === 0) {
+          faults++;
+
+          while(1) {
+              // If reference bit = 0 → replace
+              if(ref[pointer] === 0) {
+                  victim = frames[pointer];
+                  frames[pointer] = pages[i];
+                  ref[pointer] = 1;
+                  pointer = (pointer + 1) % f;
+                  break;
+              }
+              // If reference bit = 1 → give second chance
+              else {
+                  ref[pointer] = 0;
+                  pointer = (pointer + 1) % f;
+              }
+          }
+      }
+
+      steps.push({
+        step: i,
+        page: pages[i],
+        framesSnapshot: frames.slice(),
+        frameCount: f,
+        pageFault: (flag === 0),
+        victimPage: victim,
+        refBitSnapshot: ref.slice()
+      });
+  }
+
+  return { steps, totalFaults: faults, totalHits: hits, algorithmName: 'Clock' };
 }

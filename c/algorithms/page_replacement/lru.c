@@ -9,56 +9,67 @@
 #include "lru.h"
 #include <string.h>
 
-static int frame_index(int *frames, int n, int page) {
-    int i;
-    for (i = 0; i < n; i++) if (frames[i] == page) return i;
-    return -1;
-}
-
 PRResult lru_simulate(PRInput input) {
     PRResult result;
     memset(&result, 0, sizeof(PRResult));
     strncpy(result.algorithm_name, "LRU", 31);
 
     int frames[MAX_FRAMES_PR];
-    int last_used[MAX_FRAMES_PR];
-    int n = input.frame_count;
+    int time[MAX_FRAMES_PR];
+    int *pages = input.ref_string;
+    int n = input.ref_length;
+    int f = input.frame_count;
     int i, j;
-    for (i = 0; i < n; i++) { frames[i] = -1; last_used[i] = -1; }
-    int loaded = 0;
+    int pageFaults = 0, hits = 0;
+    int counter = 0, pos, min;
 
-    for (i = 0; i < input.ref_length; i++) {
-        int page = input.ref_string[i];
-        PRStep *step = &result.steps[result.step_count++];
-        step->step = i;
-        step->page = page;
-        step->frame_count = n;
+    for (i = 0; i < f; i++) {
+        frames[i] = -1;
+        time[i] = 0;
+    }
 
-        int idx = frame_index(frames, n, page);
-        if (idx != -1) {
-            step->page_fault = 0;
-            result.total_hits++;
-            last_used[idx] = i;
-        } else {
-            step->page_fault = 1;
-            result.total_faults++;
-            int victim = 0;
-            if (loaded < n) {
-                victim = loaded++;
-                step->victim_page = -1;
-            } else {
-                int min_t = last_used[0];
-                victim = 0;
-                for (j = 1; j < n; j++) {
-                    if (last_used[j] < min_t) { min_t = last_used[j]; victim = j; }
-                }
-                step->victim_page = frames[victim];
+    for (i = 0; i < n; i++) {
+        int flag = 0;
+        int victim = -1;
+
+        for (j = 0; j < f; j++) {
+            if (frames[j] == pages[i]) {
+                flag = 1;
+                hits++;
+                counter++;
+                time[j] = counter;
+                break;
             }
-            frames[victim] = page;
-            last_used[victim] = i;
         }
 
-        for (j = 0; j < n; j++) step->frames_snapshot[j] = frames[j];
+        if (flag == 0) {
+            pageFaults++;
+            counter++;
+            min = time[0];
+            pos = 0;
+
+            for (j = 1; j < f; j++) {
+                if (time[j] < min) {
+                    min = time[j];
+                    pos = j;
+                }
+            }
+
+            victim = frames[pos];
+            frames[pos] = pages[i];
+            time[pos] = counter;
+        }
+
+        PRStep *step = &result.steps[result.step_count++];
+        step->step = i;
+        step->page = pages[i];
+        step->frame_count = f;
+        step->page_fault = (flag == 0);
+        step->victim_page = victim;
+        for (j = 0; j < f; j++) step->frames_snapshot[j] = frames[j];
     }
+
+    result.total_faults = pageFaults;
+    result.total_hits = hits;
     return result;
 }

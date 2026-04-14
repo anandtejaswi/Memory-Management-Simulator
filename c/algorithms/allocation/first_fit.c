@@ -42,15 +42,33 @@ static void split_block(MemoryMap *map, int index, int size) {
 }
 
 int first_fit_allocate(MemoryMap *map, int process_id, int size) {
-    int i;
-    for (i = 0; i < map->block_count; i++) {
-        if (map->blocks[i].is_free && map->blocks[i].size >= size) {
-            split_block(map, i, size);
-            map->blocks[i].is_free = 0;
-            map->blocks[i].process_id = process_id;
-            map->last_allocated_index = i;
-            return map->blocks[i].base;
+    int m = map->block_count;
+    int n = 1;
+    int blockSize[MAX_BLOCKS];
+    int k;
+    for (k = 0; k < m; k++) {
+        blockSize[k] = map->blocks[k].is_free ? map->blocks[k].size : 0;
+    }
+    int processSize[1] = {size};
+    int allocation[1] = {-1};
+
+    int i = 0;
+    int j;
+    for (j = 0; j < m; j++) {
+        if (blockSize[j] >= processSize[i]) {
+            allocation[i] = j;
+            blockSize[j] -= processSize[i];
+            break;
         }
+    }
+
+    if (allocation[0] != -1) {
+        j = allocation[0];
+        split_block(map, j, size);
+        map->blocks[j].is_free = 0;
+        map->blocks[j].process_id = process_id;
+        map->last_allocated_index = j;
+        return map->blocks[j].base;
     }
     return -1;
 }

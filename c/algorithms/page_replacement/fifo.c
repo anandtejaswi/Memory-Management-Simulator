@@ -9,46 +9,51 @@
 #include "fifo.h"
 #include <string.h>
 
-static int frame_contains(int *frames, int n, int page) {
-    int i;
-    for (i = 0; i < n; i++) if (frames[i] == page) return 1;
-    return 0;
-}
-
 PRResult fifo_simulate(PRInput input) {
     PRResult result;
     memset(&result, 0, sizeof(PRResult));
     strncpy(result.algorithm_name, "FIFO", 31);
 
     int frames[MAX_FRAMES_PR];
-    int n = input.frame_count;
-    int i, j;
-    for (i = 0; i < n; i++) frames[i] = -1;
+    int *pages = input.ref_string;
+    int n = input.ref_length;
+    int f = input.frame_count;
+    int i, j, k = 0;
+    int pageFaults = 0, hits = 0, flag;
 
-    int queue_ptr = 0;
-    int loaded = 0;
+    for (i = 0; i < f; i++) frames[i] = -1;
 
-    for (i = 0; i < input.ref_length; i++) {
-        int page = input.ref_string[i];
-        PRStep *step = &result.steps[result.step_count++];
-        step->step = i;
-        step->page = page;
-        step->frame_count = n;
+    for (i = 0; i < n; i++) {
+        flag = 0;
+        int victim = -1;
 
-        if (frame_contains(frames, n, page)) {
-            step->page_fault = 0;
-            result.total_hits++;
-        } else {
-            step->page_fault = 1;
-            result.total_faults++;
-            step->victim_page = frames[queue_ptr];
-            frames[queue_ptr] = page;
-            queue_ptr = (queue_ptr + 1) % n;
-            if (loaded < n) loaded++;
+        for (j = 0; j < f; j++) {
+            if (frames[j] == pages[i]) {
+                flag = 1;
+                break;
+            }
         }
 
-        for (j = 0; j < n; j++) step->frames_snapshot[j] = frames[j];
+        if (flag == 0) {
+            victim = frames[k];
+            frames[k] = pages[i];
+            k = (k + 1) % f;
+            pageFaults++;
+        } else {
+            hits++;
+        }
+
+        PRStep *step = &result.steps[result.step_count++];
+        step->step = i;
+        step->page = pages[i];
+        step->frame_count = f;
+        step->page_fault = (flag == 0);
+        step->victim_page = victim;
+        for (j = 0; j < f; j++) step->frames_snapshot[j] = frames[j];
     }
+
+    result.total_faults = pageFaults;
+    result.total_hits = hits;
     return result;
 }
 

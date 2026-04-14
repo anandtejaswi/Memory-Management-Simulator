@@ -42,21 +42,41 @@ static void split_block(MemoryMap *map, int index, int size) {
 }
 
 int best_fit_allocate(MemoryMap *map, int process_id, int size) {
-    int best = -1;
-    int i;
-    for (i = 0; i < map->block_count; i++) {
-        if (map->blocks[i].is_free && map->blocks[i].size >= size) {
-            if (best == -1 || map->blocks[i].size < map->blocks[best].size) {
-                best = i;
+    int m = map->block_count;
+    int n = 1;
+    int blockSize[MAX_BLOCKS];
+    int k;
+    for (k = 0; k < m; k++) {
+        blockSize[k] = map->blocks[k].is_free ? map->blocks[k].size : 0;
+    }
+    int processSize[1] = {size};
+    int allocation[1] = {-1};
+
+    int i = 0;
+    int bestIdx = -1;
+    int j;
+    for (j = 0; j < m; j++) {
+        if (blockSize[j] >= processSize[i]) {
+            if (bestIdx == -1 || blockSize[j] < blockSize[bestIdx]) {
+                bestIdx = j;
             }
         }
     }
-    if (best == -1) return -1;
-    split_block(map, best, size);
-    map->blocks[best].is_free = 0;
-    map->blocks[best].process_id = process_id;
-    map->last_allocated_index = best;
-    return map->blocks[best].base;
+
+    if (bestIdx != -1) {
+        allocation[i] = bestIdx;
+        blockSize[bestIdx] -= processSize[i];
+    }
+
+    if (allocation[0] != -1) {
+        j = allocation[0];
+        split_block(map, j, size);
+        map->blocks[j].is_free = 0;
+        map->blocks[j].process_id = process_id;
+        map->last_allocated_index = j;
+        return map->blocks[j].base;
+    }
+    return -1;
 }
 
 void best_fit_free(MemoryMap *map, int process_id) {
