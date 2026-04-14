@@ -15,7 +15,6 @@
 #include "algorithms/allocation/next_fit.h"
 #include "algorithms/page_replacement/fifo.h"
 #include "algorithms/page_replacement/lru.h"
-#include "algorithms/page_replacement/lfu.h"
 #include "algorithms/page_replacement/optimal.h"
 #include "algorithms/page_replacement/clock.h"
 #include "algorithms/paging/page_table.h"

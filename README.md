@@ -8,7 +8,7 @@ An interactive Operating Systems educational tool that simulates memory manageme
 |---|---|
 | **Contiguous Allocation** | First Fit, Best Fit, Worst Fit, Next Fit |
 | **Paging + TLB** | Address translation, TLB hit/miss, page fault simulation |
-| **Page Replacement** | FIFO, LRU, LFU, Optimal, Clock (Second Chance) |
+| **Page Replacement** | FIFO, LRU, Optimal, Clock (Second Chance) |
 | **Segmentation** | Segment table, protection bits, address translation |
 | **Virtual Memory** | Working Set Model, 2-Level Page Table, Inverted PT, Thrashing |
 | **Analytics** | Chart.js charts, memory heatmap, CSV/PDF export |
@@ -105,7 +105,6 @@ All four share `coalesce_free_blocks` and `split_block` helpers.
 |---|---|
 | FIFO | Circular queue; susceptible to Belady's anomaly |
 | LRU | Timestamp per frame; stack algorithm |
-| LFU | Frequency count; LRU tie-breaking |
 | Optimal | Future knowledge; theoretical minimum |
 | Clock | Reference bits; O(n) worst-case per fault |
 

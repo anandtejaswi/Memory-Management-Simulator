@@ -17,7 +17,6 @@ C_SRCS  = \
 	c/algorithms/allocation/next_fit.c \
 	c/algorithms/page_replacement/fifo.c \
 	c/algorithms/page_replacement/lru.c \
-	c/algorithms/page_replacement/lfu.c \
 	c/algorithms/page_replacement/optimal.c \
 	c/algorithms/page_replacement/clock.c \
 	c/algorithms/paging/page_table.c \

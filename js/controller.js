@@ -6,7 +6,6 @@
 
 import { fifoSimulate, fifoCheckBeladys } from './algorithms/page_replacement/fifo.js';
 import { lruSimulate }     from './algorithms/page_replacement/lru.js';
-import { lfuSimulate }     from './algorithms/page_replacement/lfu.js';
 import { optimalSimulate } from './algorithms/page_replacement/optimal.js';
 import { clockSimulate }   from './algorithms/page_replacement/clock.js';
 
@@ -63,7 +62,6 @@ function getAllocFn(algo) {
 function getPRFn(algo) {
   switch (algo) {
     case 'lru':     return lruSimulate;
-    case 'lfu':     return lfuSimulate;
     case 'optimal': return optimalSimulate;
     case 'clock':   return clockSimulate;
     default:        return fifoSimulate;
@@ -297,7 +295,6 @@ function initPagingModule() {
       const results = [
         fifoSimulate(input),
         lruSimulate(input),
-        lfuSimulate(input),
         optimalSimulate(input),
         clockSimulate(input)
       ];
